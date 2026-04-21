@@ -2,28 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Reparto Badalona Pro</title>
+    
+    <link rel="apple-touch-icon" href="icono.png"> <link rel="icon" type="image/png" href="icono.png"> <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bdn Delivery">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .sticky-search { position: sticky; top: 0; z-index: 10; background: white; padding-bottom: 1rem; }
+        /* Evita que el zoom automático de iPhone al enfocar inputs rompa el diseño */
+        input[type="text"], input[type="tel"] { font-size: 16px !important; }
     </style>
 </head>
 <body class="bg-gray-100 p-4">
 
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
         <h2 class="text-2xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-            📦 Badalona Delivery
+            📦 Badalona Delivery Pro
         </h2>
         
         <details class="mb-6 bg-blue-50 rounded-lg">
             <summary class="p-3 cursor-pointer font-semibold text-blue-700">＋ Añadir nuevo paquete</summary>
             <div class="p-3 space-y-3">
                 <input id="nombre" type="text" placeholder="Nombre del Cliente" class="w-full p-2 border rounded">
-                <input id="direccion" type="text" placeholder="Calle, número, piso..." class="w-full p-2 border rounded">
+                <input id="direccion" type="text" placeholder="Calle, número, piso (Badalona)" class="w-full p-2 border rounded">
                 <input id="telefono" type="tel" placeholder="Teléfono" class="w-full p-2 border rounded">
                 <input id="dni" type="text" placeholder="DNI (Opcional)" class="w-full p-2 border rounded">
-                <button onclick="guardarContacto()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">
+                <button onclick="guardarContacto()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">
                     Guardar en Ruta
                 </button>
             </div>
@@ -45,7 +51,7 @@
     <script>
         function guardarContacto() {
             const contacto = {
-                id: Date.now(), // ID único para borrar mejor
+                id: Date.now(),
                 nombre: document.getElementById('nombre').value,
                 direccion: document.getElementById('direccion').value,
                 telefono: document.getElementById('telefono').value,
@@ -53,16 +59,16 @@
             };
 
             if (!contacto.nombre || !contacto.telefono) {
-                alert("Mínimo nombre y teléfono, jefe/a 🚚");
+                alert("Mínimo nombre y teléfono, jefa! 🚚");
                 return;
             }
 
             let contactos = JSON.parse(localStorage.getItem('contactos')) || [];
-            contactos.unshift(contacto); // Los nuevos aparecen primero
+            contactos.unshift(contacto);
             localStorage.setItem('contactos', JSON.stringify(contactos));
             
             document.querySelectorAll('input:not(#buscador)').forEach(i => i.value = '');
-            document.querySelector('details').open = false; // Cerrar formulario
+            document.querySelector('details').open = false; 
             mostrarContactos();
         }
 
@@ -88,7 +94,7 @@
             listaDiv.innerHTML = '';
 
             if (listaArray.length === 0) {
-                listaDiv.innerHTML = '<p class="text-center text-gray-400 py-10">No hay contactos que coincidan.</p>';
+                listaDiv.innerHTML = '<p class="text-center text-gray-400 py-10">No hay paquetes que coincidan.</p>';
                 return;
             }
 
@@ -105,8 +111,8 @@
                             <a href="tel:${c.telefono}" class="flex-1 bg-green-500 text-white text-center py-3 rounded-xl flex justify-center items-center gap-2 font-bold shadow-md">
                                 📞 Llamar
                             </a>
-                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.direccion + ' Badalona')}" target="_blank" class="flex-1 bg-white border-2 border-yellow-500 text-yellow-600 text-center py-3 rounded-xl flex justify-center items-center gap-2 font-bold shadow-sm">
-                                🗺️ Ver Mapa
+                            <a href="https://maps.google.com/?q=${encodeURIComponent(c.direccion + ' Badalona')}" target="_blank" class="flex-1 bg-white border-2 border-yellow-500 text-yellow-600 text-center py-3 rounded-xl flex justify-center items-center gap-2 font-bold shadow-sm">
+                                🗺️ Mapa
                             </a>
                             <button onclick="borrar(${c.id})" class="px-3 text-red-400 hover:text-red-600 transition-colors">
                                 🗑️
@@ -122,10 +128,9 @@
             let contactos = JSON.parse(localStorage.getItem('contactos'));
             contactos = contactos.filter(c => c.id !== id);
             localStorage.setItem('contactos', JSON.stringify(contactos));
-            filtrarContactos(); // Refresca con lo que haya en el buscador
+            filtrarContactos(); 
         }
 
-        // Cargar al iniciar
         mostrarContactos();
     </script>
 </body>
