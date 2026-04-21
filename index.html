@@ -3,34 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda de Reparto - Badalona</title>
+    <title>Reparto Badalona Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sticky-search { position: sticky; top: 0; z-index: 10; background: white; padding-bottom: 1rem; }
+    </style>
 </head>
 <body class="bg-gray-100 p-4">
 
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <h2 class="text-2xl font-bold text-blue-600 mb-4">📦 Nueva Entrega</h2>
+        <h2 class="text-2xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+            📦 Badalona Delivery
+        </h2>
         
-        <div class="space-y-3">
-            <input id="nombre" type="text" placeholder="Nombre del Cliente" class="w-full p-2 border rounded">
-            <input id="direccion" type="text" placeholder="Dirección (Ej: Carrer de Mar, 10)" class="w-full p-2 border rounded">
-            <input id="telefono" type="tel" placeholder="Teléfono" class="w-full p-2 border rounded">
-            <input id="dni" type="text" placeholder="DNI (Opcional)" class="w-full p-2 border rounded">
-            <button onclick="guardarContacto()" class="w-full bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600">
-                Añadir a la Ruta
-            </button>
+        <details class="mb-6 bg-blue-50 rounded-lg">
+            <summary class="p-3 cursor-pointer font-semibold text-blue-700">＋ Añadir nuevo paquete</summary>
+            <div class="p-3 space-y-3">
+                <input id="nombre" type="text" placeholder="Nombre del Cliente" class="w-full p-2 border rounded">
+                <input id="direccion" type="text" placeholder="Calle, número, piso..." class="w-full p-2 border rounded">
+                <input id="telefono" type="tel" placeholder="Teléfono" class="w-full p-2 border rounded">
+                <input id="dni" type="text" placeholder="DNI (Opcional)" class="w-full p-2 border rounded">
+                <button onclick="guardarContacto()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">
+                    Guardar en Ruta
+                </button>
+            </div>
+        </details>
+
+        <hr class="my-4">
+
+        <div class="sticky-search">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar por nombre o calle:</label>
+            <input id="buscador" type="text" onkeyup="filtrarContactos()" 
+                   placeholder="Ej: Carrer de Sant Bru..." 
+                   class="w-full p-3 border-2 border-blue-400 rounded-full shadow-sm focus:outline-none focus:border-blue-600">
         </div>
 
-        <hr class="my-6">
-
-        <h3 class="text-xl font-semibold mb-3">📍 Ruta del Día</h3>
-        <div id="listaContactos" class="space-y-4">
+        <div id="listaContactos" class="space-y-4 mt-4">
             </div>
     </div>
 
     <script>
         function guardarContacto() {
             const contacto = {
+                id: Date.now(), // ID único para borrar mejor
                 nombre: document.getElementById('nombre').value,
                 direccion: document.getElementById('direccion').value,
                 telefono: document.getElementById('telefono').value,
@@ -38,39 +53,62 @@
             };
 
             if (!contacto.nombre || !contacto.telefono) {
-                alert("Por favor, pon al menos nombre y teléfono");
+                alert("Mínimo nombre y teléfono, jefe/a 🚚");
                 return;
             }
 
             let contactos = JSON.parse(localStorage.getItem('contactos')) || [];
-            contactos.push(contacto);
+            contactos.unshift(contacto); // Los nuevos aparecen primero
             localStorage.setItem('contactos', JSON.stringify(contactos));
             
-            // Limpiar inputs y refrescar lista
-            document.querySelectorAll('input').forEach(i => i.value = '');
+            document.querySelectorAll('input:not(#buscador)').forEach(i => i.value = '');
+            document.querySelector('details').open = false; // Cerrar formulario
             mostrarContactos();
         }
 
-        function mostrarContactos() {
-            const lista = document.getElementById('listaContactos');
+        function filtrarContactos() {
+            const busqueda = document.getElementById('buscador').value.toLowerCase();
             const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
-            lista.innerHTML = '';
+            
+            const filtrados = contactos.filter(c => 
+                c.nombre.toLowerCase().includes(busqueda) || 
+                c.direccion.toLowerCase().includes(busqueda)
+            );
 
-            contactos.forEach((c, index) => {
-                lista.innerHTML += `
-                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50 relative">
-                        <p class="font-bold text-lg">${c.nombre}</p>
-                        <p class="text-sm text-gray-600">🏠 ${c.direccion}</p>
-                        <p class="text-sm text-gray-600">🆔 DNI: ${c.dni}</p>
+            renderizar(filtrados);
+        }
+
+        function mostrarContactos() {
+            const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
+            renderizar(contactos);
+        }
+
+        function renderizar(listaArray) {
+            const listaDiv = document.getElementById('listaContactos');
+            listaDiv.innerHTML = '';
+
+            if (listaArray.length === 0) {
+                listaDiv.innerHTML = '<p class="text-center text-gray-400 py-10">No hay contactos que coincidan.</p>';
+                return;
+            }
+
+            listaArray.forEach((c) => {
+                listaDiv.innerHTML += `
+                    <div class="p-4 border-l-4 border-blue-500 rounded-r-lg bg-gray-50 shadow-sm relative">
+                        <div class="pr-8">
+                            <p class="font-bold text-lg uppercase text-gray-800">${c.nombre}</p>
+                            <p class="text-sm text-blue-800 font-medium italic">📍 ${c.direccion}</p>
+                            ${c.dni ? `<p class="text-xs text-gray-500 mt-1">DNI: ${c.dni}</p>` : ''}
+                        </div>
                         
                         <div class="flex gap-2 mt-3">
-                            <a href="tel:${c.telefono}" class="flex-1 bg-green-500 text-white text-center p-2 rounded text-sm font-bold">
+                            <a href="tel:${c.telefono}" class="flex-1 bg-green-500 text-white text-center py-3 rounded-xl flex justify-center items-center gap-2 font-bold shadow-md">
                                 📞 Llamar
                             </a>
-                            <a href="https://www.google.com/maps/search/${encodeURIComponent(c.direccion + ' Badalona')}" target="_blank" class="flex-1 bg-yellow-500 text-white text-center p-2 rounded text-sm font-bold">
-                                🗺️ Mapa
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.direccion + ' Badalona')}" target="_blank" class="flex-1 bg-white border-2 border-yellow-500 text-yellow-600 text-center py-3 rounded-xl flex justify-center items-center gap-2 font-bold shadow-sm">
+                                🗺️ Ver Mapa
                             </a>
-                            <button onclick="borrar(${index})" class="bg-red-100 text-red-600 p-2 rounded">
+                            <button onclick="borrar(${c.id})" class="px-3 text-red-400 hover:text-red-600 transition-colors">
                                 🗑️
                             </button>
                         </div>
@@ -79,11 +117,12 @@
             });
         }
 
-        function borrar(index) {
+        function borrar(id) {
+            if(!confirm("¿Ya lo entregaste? Se borrará de la lista.")) return;
             let contactos = JSON.parse(localStorage.getItem('contactos'));
-            contactos.splice(index, 1);
+            contactos = contactos.filter(c => c.id !== id);
             localStorage.setItem('contactos', JSON.stringify(contactos));
-            mostrarContactos();
+            filtrarContactos(); // Refresca con lo que haya en el buscador
         }
 
         // Cargar al iniciar
